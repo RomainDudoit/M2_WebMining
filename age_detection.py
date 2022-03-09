@@ -1,6 +1,8 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import pandas as pd
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 import cv2
 from keras.models import Sequential,load_model,Model
@@ -60,7 +62,7 @@ age_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 print(age_model.summary())              
                            
 history_age = age_model.fit(x_train_age, y_train_age,
-                        validation_data=(x_test_age, y_test_age), epochs=2)
+                        validation_data=(x_test_age, y_test_age), epochs=50)
 
 age_model.save('age_model_50epochs.h5')
 
@@ -92,7 +94,7 @@ gender_model.add(Dense(1, activation='sigmoid', name='gender'))
 gender_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 history_gender = gender_model.fit(x_train_gender, y_train_gender,
-                        validation_data=(x_test_gender, y_test_gender), epochs=2)
+                        validation_data=(x_test_gender, y_test_gender), epochs=50)
 
 gender_model.save('gender_model_50epochs.h5')
 

@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar  9 18:10:50 2022
+
+@author: Romain
+"""
+
 # Code Anis - Defend Intelligence
 import cv2
 import dlib
@@ -9,8 +16,6 @@ from pathlib import Path
 import os
 import ntpath
 
-parser = argparse.ArgumentParser(description='Easy Facial Recognition App')
-parser.add_argument('-i', '--input', type=str, required=True, help='directory of input known faces')
 
 print('[INFO] Starting System...')
 print('[INFO] Importing pretrained model..')
@@ -79,41 +84,38 @@ def easy_face_reco(frame, known_face_encodings, known_face_names):
             cv2.circle(frame, (x, y), 1, (255, 0, 255), -1)
 
 
-if __name__ == '__main__':
-    args = parser.parse_args()
-    print(args)
+print('[INFO] Importing faces...')
 
-    print('[INFO] Importing faces...')
-    face_to_encode_path = Path(args.input)
-    
-    print(face_to_encode_path)
-    files = [file_ for file_ in face_to_encode_path.rglob('*.jpg')]
-    print(files)
+face_to_encode_path = Path("known_faces")
+#print(face_to_encode_path)
+files = [file_ for file_ in face_to_encode_path.glob('*.jpg')]
+#print(files)
 
-    for file_ in face_to_encode_path.rglob('*.png'):
-        files.append(file_)
-    if len(files)==0:
-        raise ValueError('No faces detect in the directory: {}'.format(face_to_encode_path))
-    known_face_names = [os.path.splitext(ntpath.basename(file_))[0] for file_ in files]
+for file_ in face_to_encode_path.glob('*.png'):
+    files.append(file_)
+if len(files)==0:
+    raise ValueError('No faces detect in the directory: {}'.format(face_to_encode_path))
+known_face_names = [os.path.splitext(ntpath.basename(file_))[0] for file_ in files]
 
-    known_face_encodings = []
-    for file_ in files:
-        image = PIL.Image.open(file_)
-        image = np.array(image)
-        face_encoded = encode_face(image)[0][0]
-        known_face_encodings.append(face_encoded)
+known_face_encodings = []
+for file_ in files:
+    image = PIL.Image.open(file_)
+    image = np.array(image)
+    face_encoded = encode_face(image)[0][0]
+    known_face_encodings.append(face_encoded)
 
-    print('[INFO] Faces well imported')
-    print('[INFO] Starting Webcam...')
-    video_capture = cv2.VideoCapture(0)
-    print('[INFO] Webcam well started')
-    print('[INFO] Detecting...')
-    while True:
-        ret, frame = video_capture.read()
-        easy_face_reco(frame, known_face_encodings, known_face_names)
-        cv2.imshow('Easy Facial Recognition App', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    print('[INFO] Stopping System')
-    video_capture.release()
-    cv2.destroyAllWindows()
+print('[INFO] Faces well imported')
+print('[INFO] Starting Webcam...')
+video_capture = cv2.VideoCapture(0)
+print('[INFO] Webcam well started')
+print('[INFO] Detecting...')
+while True:
+    ret, frame = video_capture.read()
+    easy_face_reco(frame, known_face_encodings, known_face_names)
+    print(known_face_names)
+    cv2.imshow('Easy Facial Recognition App', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+print('[INFO] Stopping System')
+video_capture.release()
+cv2.destroyAllWindows()

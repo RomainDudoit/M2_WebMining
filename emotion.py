@@ -100,7 +100,7 @@ for root, dirs, files in os.walk(validation_data_dir):
     num_test_imgs += len(files)
 
 
-epochs=2
+epochs=100
 
 history=model.fit(train_generator,
                 steps_per_epoch=num_train_imgs//batch_size,
