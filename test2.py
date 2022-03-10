@@ -116,7 +116,7 @@ for file_ in files:
 print('[INFO] Faces well imported')
 print('[INFO] Starting Webcam...')
 
-
+ 
 
 face_classifier=cv2.CascadeClassifier('haarcascades_models/haarcascade_frontalface_default.xml')
 emotion_model = load_model('models/emotion_detection_model_100epochs.h5')
@@ -128,6 +128,9 @@ gender_labels = ['Male', 'Female']
 
 cap=cv2.VideoCapture(0)
 
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+print(fps)
+
 if (cap.isOpened() == False): 
     print("Error reading video file")
   
@@ -135,15 +138,20 @@ if (cap.isOpened() == False):
 # so, convert them from float to integer.
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
-   
+
 size = (frame_width, frame_height)
+
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
    
 # Below VideoWriter object will create
 # a frame of above defined The output 
 # is stored in 'filename.avi' file.
-result = cv2.VideoWriter('filename.mp4', 
-                         cv2.VideoWriter_fourcc(*'MP4V'),
-                         10, size)
+
+
+
+result = cv2.VideoWriter('filename.avi', fourcc, fps,size)
+
+
 
 
 
@@ -151,8 +159,7 @@ while True:
     
     
     ret,frame=cap.read()
-    if ret == True:
-        result.write(frame)
+
     labels=[]
     
     easy_face_reco(frame, known_face_encodings, known_face_names)
@@ -187,17 +194,20 @@ while True:
         #Age
         age_predict = age_model.predict(np.array(roi_color).reshape(-1,200,200,3))
         age = round(age_predict[0,0])
+        if age<0:
+            age = 20
         age_label_position=(x+h,y+h)
         cv2.putText(frame,"Age="+str(age),age_label_position,cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0),2)
         
         
    
     cv2.imshow('Emotion Detector', frame)
+    result.write(frame)
     if cv2.waitKey(1) & 0xFF == ord('s'):
         break
 
 
-cap.release()
+result.release()
 cv2.destroyAllWindows()
 
    
