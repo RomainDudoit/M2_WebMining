@@ -20,6 +20,7 @@ import argparse
 from pathlib import Path
 import os
 import ntpath
+import streamlit as st
 
 #chargement des modèles pré-entrainés pour les noms
 pose_predictor_68_point = dlib.shape_predictor("../pretrained_model/shape_predictor_68_face_landmarks.dat")
@@ -86,64 +87,6 @@ def easy_face_reco(frame, known_face_encodings, known_face_names):
             cv2.circle(frame, (x, y), 1, (255, 0, 255), -1)
     return face_names
 
-
-print('[INFO] Importing faces...')
-
-
-face_to_encode_path = Path("../known_faces")
-#print(face_to_encode_path)
-files = [file_ for file_ in face_to_encode_path.glob('*.jpg')]
-#print(files)
-
-for file_ in face_to_encode_path.glob('*.png'):
-    files.append(file_)
-if len(files)==0:
-    raise ValueError('No faces detect in the directory: {}'.format(face_to_encode_path))
-known_face_names = [os.path.splitext(ntpath.basename(file_))[0] for file_ in files]
-
-known_face_encodings = []
-for file_ in files:
-    image = PIL.Image.open(file_)
-    image = np.array(image)
-    face_encoded = encode_face(image)[0][0]
-    known_face_encodings.append(face_encoded)
-
-print('[INFO] Faces well imported')
-print('[INFO] Starting Webcam...')
-
-face_classifier=cv2.CascadeClassifier('../haarcascades_models/haarcascade_frontalface_default.xml')
-emotion_model = load_model('../models/emotion_detection_model_100epochs.h5')
-class_labels=['Angry','Disgust', 'Fear', 'Happy','Neutral','Sad','Surprise']
-
-
-# The gender model architecture
-GENDER_MODEL = 'weights/deploy_gender.prototxt'
-# The gender model pre-trained weights
-
-GENDER_PROTO = 'weights/gender_net.caffemodel'
-# Each Caffe Model impose the shape of the input image also image preprocessing is required like mean
-# substraction to eliminate the effect of illunination changes
-MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
-# Represent the gender classes
-GENDER_LIST = ['Male', 'Female']
-FACE_PROTO = "weights/deploy.prototxt.txt"
-FACE_MODEL = "weights/res10_300x300_ssd_iter_140000_fp16.caffemodel"
-# The model architecture
-AGE_MODEL = 'weights/deploy_age.prototxt'
-# The model pre-trained weights
-AGE_PROTO = 'weights/age_net.caffemodel'
-# Represent the 8 age classes of this CNN probability layer
-AGE_INTERVALS = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)',
-                 '(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
-# Initialize frame size
-frame_width = 1280
-frame_height = 720
-# load face Caffe model
-face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
-# Load age prediction model
-age_net = cv2.dnn.readNetFromCaffe(AGE_MODEL, AGE_PROTO)
-# Load gender prediction model
-gender_net = cv2.dnn.readNetFromCaffe(GENDER_MODEL, GENDER_PROTO)
 
 def get_faces(frame, confidence_threshold=0.5):
     # convert the frame into a blob to be ready for NN input
@@ -294,7 +237,7 @@ def predict_age_and_gender():
             list_sise = list_sise + names
             
             # Display processed image
-        cv2.imshow("Gender Estimator", frame)
+        #cv2.imshow("Gender Estimator", frame)
         result.write(frame)
         liste_sise = set(list_sise)
         #print(liste_sise)
@@ -309,9 +252,64 @@ def predict_age_and_gender():
     cv2.destroyAllWindows()
     return liste_sise
 
-
-
 if __name__ == "__main__":
+    
+    print('[INFO] Importing faces...')
+
+    face_to_encode_path = Path("../known_faces")
+    #print(face_to_encode_path)
+    files = [file_ for file_ in face_to_encode_path.glob('*.jpg')]
+    #print(files)
+
+    for file_ in face_to_encode_path.glob('*.png'):
+        files.append(file_)
+    if len(files)==0:
+        raise ValueError('No faces detect in the directory: {}'.format(face_to_encode_path))
+    known_face_names = [os.path.splitext(ntpath.basename(file_))[0] for file_ in files]
+
+    known_face_encodings = []
+    for file_ in files:
+        image = PIL.Image.open(file_)
+        image = np.array(image)
+        face_encoded = encode_face(image)[0][0]
+        known_face_encodings.append(face_encoded)
+
+    print('[INFO] Faces well imported')
+    print('[INFO] Starting Webcam...')
+
+    face_classifier=cv2.CascadeClassifier('../haarcascades_models/haarcascade_frontalface_default.xml')
+    emotion_model = load_model('../models/emotion_detection_model_100epochs.h5')
+    class_labels=['Angry','Disgust', 'Fear', 'Happy','Neutral','Sad','Surprise']
+
+
+    # The gender model architecture
+    GENDER_MODEL = 'weights/deploy_gender.prototxt'
+    # The gender model pre-trained weights
+
+    GENDER_PROTO = 'weights/gender_net.caffemodel'
+    # Each Caffe Model impose the shape of the input image also image preprocessing is required like mean
+    # substraction to eliminate the effect of illunination changes
+    MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
+    # Represent the gender classes
+    GENDER_LIST = ['Male', 'Female']
+    FACE_PROTO = "weights/deploy.prototxt.txt"
+    FACE_MODEL = "weights/res10_300x300_ssd_iter_140000_fp16.caffemodel"
+    # The model architecture
+    AGE_MODEL = 'weights/deploy_age.prototxt'
+    # The model pre-trained weights
+    AGE_PROTO = 'weights/age_net.caffemodel'
+    # Represent the 8 age classes of this CNN probability layer
+    AGE_INTERVALS = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)',
+                     '(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
+    # Initialize frame size
+    frame_width = 1280
+    frame_height = 720
+    # load face Caffe model
+    face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
+    # Load age prediction model
+    age_net = cv2.dnn.readNetFromCaffe(AGE_MODEL, AGE_PROTO)
+    # Load gender prediction model
+    gender_net = cv2.dnn.readNetFromCaffe(GENDER_MODEL, GENDER_PROTO)
     
     liste_sise = predict_age_and_gender()
     with open('filename.txt', 'w') as f:
